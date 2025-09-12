@@ -4,11 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Index,
 } from 'typeorm';
 
 @Entity('keywords')
-@Index(['keyword'], { unique: true })
 export class KeywordEntity {
   @PrimaryGeneratedColumn()
   id: number;
