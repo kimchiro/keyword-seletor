@@ -1,0 +1,22 @@
+---
+description: 프로젝트 초기 세팅 및 버전 명시 (MVP v0.1.0)
+globs: ["apps/**", "packages/**", "infra/**"]
+alwaysApply: false
+---
+# 02. 초기 세팅
+
+## 버전
+- MVP v0.1.0
+
+## 기술 스택
+- 프론트엔드: Next.js (TypeScript, Emotion)
+- 백엔드: NestJS (TypeScript, TypeORM)
+- 데이터베이스: MySQL
+- 캐시: Redis
+- 큐/배치: BullMQ
+- 크롤링: Playwright
+
+## 기본 환경
+- KST(Asia/Seoul) 기준 스케줄
+- 비밀키/토큰은 안전 저장소 관리
+- JSON 구조 로깅, 민감정보 마스킹

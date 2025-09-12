@@ -1,0 +1,30 @@
+---
+description: 데이터베이스 스키마 구조 및 Redis 키/큐 정책 요약
+globs: ["db/**", "migrations/**"]
+alwaysApply: false
+---
+# 05. 스키마 구조 (요약)
+
+## MySQL 테이블
+- keywords, keyword_metrics_monthly, keyword_trends_daily
+- related_terms, tag_suggestions
+- reports (리포트 스냅샷)
+- requests (요청 로그)
+- quotas (사용자별 호출량)
+- api_calls (외부 API 호출 로그)
+- crawl_jobs (크롤러 잡)
+- error_logs (에러 기록)
+
+## Redis 키 (TTL)
+- `kw:vol:{root}:{yyyy-mm}` → 7~30일
+- `kw:trend:{root}:all` → 6~24h
+- `kw:rel:{root}`, `kw:tags:{root}` → 24~72h
+- `kw:report:{root}:latest` → 24h
+- `ratelimit:*` → 2d
+- `circuit:vendor:{name}` → 5~30m
+
+## BullMQ 잡
+- fetchMetricsMonthly, fetchTrendsDaily
+- crawlRelatedTerms, crawlTopTags
+- buildReportSnapshot, precomputeHotKeywords
+- persistRequestLog, warmCache
