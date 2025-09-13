@@ -1,11 +1,11 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import type { Job } from 'bull';
 import axios from 'axios';
 
 import { RelatedTermsEntity } from '../../modules/keyword/entities/related-terms.entity';
+import { MemoryStorageService } from '../../common/storage/memory-storage.service';
+import { COLLECTIONS } from '../../common/constants/collections';
 
 @Injectable()
 @Processor('related-terms')
@@ -13,8 +13,7 @@ export class RelatedTermsProcessor {
   private readonly logger = new Logger(RelatedTermsProcessor.name);
 
   constructor(
-    @InjectRepository(RelatedTermsEntity)
-    private relatedTermsRepository: Repository<RelatedTermsEntity>,
+    private memoryStorage: MemoryStorageService,
   ) {}
 
   @Process('fetch-related')
@@ -29,23 +28,31 @@ export class RelatedTermsProcessor {
       // 연관 검색어를 개별 레코드로 저장
       for (let i = 0; i < relatedTerms.terms.length; i++) {
         const term = relatedTerms.terms[i];
-        let relatedEntity = await this.relatedTermsRepository.findOne({
-          where: { rootKeyword: keyword, relatedTerm: term }
-        });
+        const existingEntity = this.memoryStorage.findOne<RelatedTermsEntity>(
+          COLLECTIONS.RELATED_TERMS,
+          (item) => item.rootKeyword === keyword && item.relatedTerm === term
+        );
 
-        if (relatedEntity) {
-          relatedEntity.relevance = (relatedTerms.terms.length - i) / relatedTerms.terms.length;
-          relatedEntity.source = relatedTerms.source;
+        const relevance = (relatedTerms.terms.length - i) / relatedTerms.terms.length;
+
+        if (existingEntity) {
+          this.memoryStorage.update<RelatedTermsEntity>(
+            COLLECTIONS.RELATED_TERMS,
+            existingEntity.id,
+            {
+              relevance,
+              source: relatedTerms.source,
+            }
+          );
         } else {
-          relatedEntity = this.relatedTermsRepository.create({
+          this.memoryStorage.save<RelatedTermsEntity>(COLLECTIONS.RELATED_TERMS, {
             rootKeyword: keyword,
             relatedTerm: term,
-            relevance: (relatedTerms.terms.length - i) / relatedTerms.terms.length,
+            relevance,
+            searchVolume: null,
             source: relatedTerms.source,
           });
         }
-
-        await this.relatedTermsRepository.save(relatedEntity);
       }
       
       this.logger.log(`연관 검색어 수집 완료: ${keyword}, ${relatedTerms.terms.length}개`);
@@ -120,7 +127,7 @@ export class RelatedTermsProcessor {
 
       if (response.data && response.data.items) {
         return response.data.items
-          .map((item: any) => item[0])
+          .map((item: string[]) => item[0])
           .filter((term: string) => term && term !== keyword)
           .slice(0, 10);
       }

@@ -1,17 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { BullModule } from '@nestjs/bull';
-// import * as redisStore from 'cache-manager-redis-store';
 
-import { DatabaseConfig } from './config/database.config';
 import { RedisConfig } from './config/redis.config';
 import { KeywordModule } from './modules/keyword/keyword.module';
 import { ReportModule } from './modules/report/report.module';
 import { CrawlerModule } from './modules/crawler/crawler.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { MemoryStorageService } from './common/storage/memory-storage.service';
 
 @Module({
   imports: [
@@ -21,10 +19,6 @@ import { SettingsModule } from './modules/settings/settings.module';
       envFilePath: ['../../.env.local', '../../.env'],
     }),
 
-    // 데이터베이스 설정
-    TypeOrmModule.forRootAsync({
-      useClass: DatabaseConfig,
-    }),
 
     // Redis 캐시 설정
     CacheModule.registerAsync({
@@ -69,5 +63,7 @@ import { SettingsModule } from './modules/settings/settings.module';
     ReportModule,
     CrawlerModule,
   ],
+  providers: [MemoryStorageService],
+  exports: [MemoryStorageService],
 })
 export class AppModule {}

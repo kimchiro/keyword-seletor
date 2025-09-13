@@ -1,12 +1,12 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { InjectQueue } from '@nestjs/bull';
 import type { Queue } from 'bull';
 import { ConfigService } from '@nestjs/config';
 import { SettingsService } from '../settings/settings.service';
+import { MemoryStorageService } from '../../common/storage/memory-storage.service';
+import { COLLECTIONS } from '../../common/constants/collections';
 
 import { KeywordEntity } from './entities/keyword.entity';
 import { KeywordMetricsEntity } from './entities/keyword-metrics.entity';
@@ -21,16 +21,7 @@ export class KeywordService {
   private readonly logger = new Logger(KeywordService.name);
 
   constructor(
-    @InjectRepository(KeywordEntity)
-    private keywordRepository: Repository<KeywordEntity>,
-    @InjectRepository(KeywordMetricsEntity)
-    private metricsRepository: Repository<KeywordMetricsEntity>,
-    @InjectRepository(KeywordTrendsEntity)
-    private trendsRepository: Repository<KeywordTrendsEntity>,
-    @InjectRepository(RelatedTermsEntity)
-    private relatedTermsRepository: Repository<RelatedTermsEntity>,
-    @InjectRepository(TagSuggestionsEntity)
-    private tagSuggestionsRepository: Repository<TagSuggestionsEntity>,
+    private memoryStorage: MemoryStorageService,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     @InjectQueue('keyword-metrics')
@@ -60,43 +51,46 @@ export class KeywordService {
     }
 
     // 키워드 엔티티 생성 또는 조회
-    let keywordEntity = await this.keywordRepository.findOne({
-      where: { keyword },
-    });
+    let keywordEntity = this.memoryStorage.findOne<KeywordEntity>(
+      COLLECTIONS.KEYWORDS,
+      (item) => item.keyword === keyword
+    );
 
     if (!keywordEntity) {
-      keywordEntity = this.keywordRepository.create({
+      keywordEntity = this.memoryStorage.save<KeywordEntity>(COLLECTIONS.KEYWORDS, {
         keyword,
         firstSearchedAt: new Date(),
         lastSearchedAt: new Date(),
         searchCount: 1,
+        isActive: true,
       });
     } else {
-      keywordEntity.lastSearchedAt = new Date();
-      keywordEntity.searchCount += 1;
+      keywordEntity = this.memoryStorage.update<KeywordEntity>(
+        COLLECTIONS.KEYWORDS,
+        keywordEntity.id,
+        {
+          lastSearchedAt: new Date(),
+          searchCount: keywordEntity.searchCount + 1,
+        }
+      )!;
     }
 
-    await this.keywordRepository.save(keywordEntity);
-
     // 기존 데이터 확인
-    const [existingMetrics, existingTrends, existingRelated, existingTags] = await Promise.all([
-      this.metricsRepository.findOne({ 
-        where: { keyword }, 
-        order: { createdAt: 'DESC' } 
-      }),
-      this.trendsRepository.findOne({ 
-        where: { keyword }, 
-        order: { createdAt: 'DESC' } 
-      }),
-      this.relatedTermsRepository.findOne({ 
-        where: { rootKeyword: keyword }, 
-        order: { createdAt: 'DESC' } 
-      }),
-      this.tagSuggestionsRepository.findOne({ 
-        where: { rootKeyword: keyword }, 
-        order: { createdAt: 'DESC' } 
-      }),
-    ]);
+    const existingMetrics = this.memoryStorage
+      .find<KeywordMetricsEntity>(COLLECTIONS.KEYWORD_METRICS, (item) => item.keyword === keyword)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+
+    const existingTrends = this.memoryStorage
+      .find<KeywordTrendsEntity>(COLLECTIONS.KEYWORD_TRENDS, (item) => item.keyword === keyword)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+
+    const existingRelated = this.memoryStorage
+      .find<RelatedTermsEntity>(COLLECTIONS.RELATED_TERMS, (item) => item.rootKeyword === keyword)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+
+    const existingTags = this.memoryStorage
+      .find<TagSuggestionsEntity>(COLLECTIONS.TAG_SUGGESTIONS, (item) => item.rootKeyword === keyword)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
 
     // 데이터가 없거나 오래된 경우 즉시 수집
     const shouldRefresh = this.shouldRefreshData(existingMetrics?.createdAt);
@@ -173,11 +167,10 @@ export class KeywordService {
   }
 
   async getKeywordMetrics(keyword: string) {
-    const metrics = await this.metricsRepository.find({
-      where: { keyword },
-      order: { createdAt: 'DESC' },
-      take: 12 // 최근 12개월
-    });
+    const metrics = this.memoryStorage
+      .find<KeywordMetricsEntity>(COLLECTIONS.KEYWORD_METRICS, (item) => item.keyword === keyword)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, 12); // 최근 12개월
 
     if (metrics.length === 0) return null;
 
@@ -192,11 +185,10 @@ export class KeywordService {
   }
 
   async getKeywordTrends(keyword: string) {
-    const trends = await this.trendsRepository.find({
-      where: { keyword },
-      order: { date: 'DESC' },
-      take: 30 // 최근 30일
-    });
+    const trends = this.memoryStorage
+      .find<KeywordTrendsEntity>(COLLECTIONS.KEYWORD_TRENDS, (item) => item.keyword === keyword)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 30); // 최근 30일
 
     if (trends.length === 0) return null;
 
@@ -212,11 +204,10 @@ export class KeywordService {
   }
 
   async getRelatedTerms(keyword: string) {
-    const related = await this.relatedTermsRepository.find({
-      where: { rootKeyword: keyword },
-      order: { relevance: 'DESC' },
-      take: 10
-    });
+    const related = this.memoryStorage
+      .find<RelatedTermsEntity>(COLLECTIONS.RELATED_TERMS, (item) => item.rootKeyword === keyword)
+      .sort((a, b) => b.relevance - a.relevance)
+      .slice(0, 10);
 
     if (related.length === 0) return null;
 
@@ -233,11 +224,10 @@ export class KeywordService {
   }
 
   async getTagSuggestions(keyword: string) {
-    const tags = await this.tagSuggestionsRepository.find({
-      where: { rootKeyword: keyword },
-      order: { frequency: 'DESC' },
-      take: 15
-    });
+    const tags = this.memoryStorage
+      .find<TagSuggestionsEntity>(COLLECTIONS.TAG_SUGGESTIONS, (item) => item.rootKeyword === keyword)
+      .sort((a, b) => b.frequency - a.frequency)
+      .slice(0, 15);
 
     if (tags.length === 0) return null;
 

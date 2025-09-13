@@ -1,12 +1,12 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import type { Job } from 'bull';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 import { TagSuggestionsEntity } from '../../modules/keyword/entities/tag-suggestions.entity';
+import { MemoryStorageService } from '../../common/storage/memory-storage.service';
+import { COLLECTIONS } from '../../common/constants/collections';
 
 @Injectable()
 @Processor('tag-suggestions')
@@ -14,8 +14,7 @@ export class TagSuggestionsProcessor {
   private readonly logger = new Logger(TagSuggestionsProcessor.name);
 
   constructor(
-    @InjectRepository(TagSuggestionsEntity)
-    private tagSuggestionsRepository: Repository<TagSuggestionsEntity>,
+    private memoryStorage: MemoryStorageService,
   ) {}
 
   @Process('fetch-tags')
@@ -29,23 +28,29 @@ export class TagSuggestionsProcessor {
       
       // 태그를 개별 레코드로 저장
       for (const tag of tagSuggestions.tags) {
-        let tagEntity = await this.tagSuggestionsRepository.findOne({
-          where: { rootKeyword: keyword, tag }
-        });
+        const existingEntity = this.memoryStorage.findOne<TagSuggestionsEntity>(
+          COLLECTIONS.TAG_SUGGESTIONS,
+          (item) => item.rootKeyword === keyword && item.tag === tag
+        );
 
-        if (tagEntity) {
-          tagEntity.frequency += 1;
-          tagEntity.source = tagSuggestions.source;
+        if (existingEntity) {
+          this.memoryStorage.update<TagSuggestionsEntity>(
+            COLLECTIONS.TAG_SUGGESTIONS,
+            existingEntity.id,
+            {
+              frequency: existingEntity.frequency + 1,
+              source: tagSuggestions.source,
+            }
+          );
         } else {
-          tagEntity = this.tagSuggestionsRepository.create({
+          this.memoryStorage.save<TagSuggestionsEntity>(COLLECTIONS.TAG_SUGGESTIONS, {
             rootKeyword: keyword,
             tag,
             frequency: 1,
+            category: null,
             source: tagSuggestions.source,
           });
         }
-
-        await this.tagSuggestionsRepository.save(tagEntity);
       }
       
       this.logger.log(`태그 후보 수집 완료: ${keyword}, ${tagSuggestions.tags.length}개`);

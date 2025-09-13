@@ -1,11 +1,11 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import type { Job } from 'bull';
 import axios from 'axios';
 
 import { KeywordTrendsEntity } from '../../modules/keyword/entities/keyword-trends.entity';
+import { MemoryStorageService } from '../../common/storage/memory-storage.service';
+import { COLLECTIONS } from '../../common/constants/collections';
 
 @Injectable()
 @Processor('keyword-trends')
@@ -13,8 +13,7 @@ export class KeywordTrendsProcessor {
   private readonly logger = new Logger(KeywordTrendsProcessor.name);
 
   constructor(
-    @InjectRepository(KeywordTrendsEntity)
-    private trendsRepository: Repository<KeywordTrendsEntity>,
+    private memoryStorage: MemoryStorageService,
   ) {}
 
   @Process('fetch-trends')
@@ -28,21 +27,27 @@ export class KeywordTrendsProcessor {
       
       // 트렌드 데이터를 개별 레코드로 저장
       for (const dataPoint of trends.data) {
-        let trendsEntity = await this.trendsRepository.findOne({
-          where: { keyword, date: dataPoint.period }
-        });
+        const existingEntity = this.memoryStorage.findOne<KeywordTrendsEntity>(
+          COLLECTIONS.KEYWORD_TRENDS,
+          (item) => item.keyword === keyword && item.date === dataPoint.period
+        );
 
-        if (trendsEntity) {
-          trendsEntity.trendValue = dataPoint.ratio;
+        if (existingEntity) {
+          this.memoryStorage.update<KeywordTrendsEntity>(
+            COLLECTIONS.KEYWORD_TRENDS,
+            existingEntity.id,
+            {
+              trendValue: dataPoint.ratio,
+            }
+          );
         } else {
-          trendsEntity = this.trendsRepository.create({
+          this.memoryStorage.save<KeywordTrendsEntity>(COLLECTIONS.KEYWORD_TRENDS, {
             keyword,
             date: dataPoint.period,
             trendValue: dataPoint.ratio,
+            source: 'naver-datalab',
           });
         }
-
-        await this.trendsRepository.save(trendsEntity);
       }
       
       this.logger.log(`키워드 트렌드 수집 완료: ${keyword}`);
@@ -82,7 +87,7 @@ export class KeywordTrendsProcessor {
       if (response.data && response.data.results && response.data.results.length > 0) {
         const result = response.data.results[0];
         return {
-          data: result.data.map((item: any) => ({
+          data: result.data.map((item: { period: string; ratio: number }) => ({
             period: item.period,
             ratio: item.ratio,
           })),

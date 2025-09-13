@@ -1,15 +1,10 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
 
 import { KeywordController } from './keyword.controller';
 import { KeywordService } from './keyword.service';
 import { SettingsModule } from '../settings/settings.module';
-import { KeywordEntity } from './entities/keyword.entity';
-import { KeywordMetricsEntity } from './entities/keyword-metrics.entity';
-import { KeywordTrendsEntity } from './entities/keyword-trends.entity';
-import { RelatedTermsEntity } from './entities/related-terms.entity';
-import { TagSuggestionsEntity } from './entities/tag-suggestions.entity';
+import { MemoryStorageService } from '../../common/storage/memory-storage.service';
 
 // 큐 프로세서들
 import { KeywordMetricsProcessor } from '../../queue/processors/keyword-metrics.processor';
@@ -20,13 +15,6 @@ import { TagSuggestionsProcessor } from '../../queue/processors/tag-suggestions.
 @Module({
   imports: [
     SettingsModule,
-    TypeOrmModule.forFeature([
-      KeywordEntity,
-      KeywordMetricsEntity,
-      KeywordTrendsEntity,
-      RelatedTermsEntity,
-      TagSuggestionsEntity,
-    ]),
     BullModule.registerQueue(
       { name: 'keyword-metrics' },
       { name: 'keyword-trends' },
@@ -36,12 +24,13 @@ import { TagSuggestionsProcessor } from '../../queue/processors/tag-suggestions.
   ],
   controllers: [KeywordController],
   providers: [
+    MemoryStorageService,
     KeywordService,
     KeywordMetricsProcessor,
     KeywordTrendsProcessor,
     RelatedTermsProcessor,
     TagSuggestionsProcessor,
   ],
-  exports: [KeywordService],
+  exports: [KeywordService, MemoryStorageService],
 })
 export class KeywordModule {}

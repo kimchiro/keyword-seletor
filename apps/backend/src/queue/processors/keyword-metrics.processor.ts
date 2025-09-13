@@ -1,11 +1,11 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import type { Job } from 'bull';
 import axios from 'axios';
 
 import { KeywordMetricsEntity } from '../../modules/keyword/entities/keyword-metrics.entity';
+import { MemoryStorageService } from '../../common/storage/memory-storage.service';
+import { COLLECTIONS } from '../../common/constants/collections';
 
 @Injectable()
 @Processor('keyword-metrics')
@@ -13,8 +13,7 @@ export class KeywordMetricsProcessor {
   private readonly logger = new Logger(KeywordMetricsProcessor.name);
 
   constructor(
-    @InjectRepository(KeywordMetricsEntity)
-    private metricsRepository: Repository<KeywordMetricsEntity>,
+    private memoryStorage: MemoryStorageService,
   ) {}
 
   @Process('fetch-metrics')
@@ -30,25 +29,31 @@ export class KeywordMetricsProcessor {
       const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
       
       // 기존 데이터 확인 후 업데이트 또는 생성
-      let metricsEntity = await this.metricsRepository.findOne({
-        where: { keyword, yearMonth: currentMonth }
-      });
+      const existingEntity = this.memoryStorage.findOne<KeywordMetricsEntity>(
+        COLLECTIONS.KEYWORD_METRICS,
+        (item) => item.keyword === keyword && item.yearMonth === currentMonth
+      );
 
-      if (metricsEntity) {
-        metricsEntity.searchVolume = metrics.searchVolume;
-        metricsEntity.competition = metrics.competition as 'HIGH' | 'MEDIUM' | 'LOW';
-        metricsEntity.competitionIndex = metrics.competitionIndex;
+      if (existingEntity) {
+        this.memoryStorage.update<KeywordMetricsEntity>(
+          COLLECTIONS.KEYWORD_METRICS,
+          existingEntity.id,
+          {
+            searchVolume: metrics.searchVolume,
+            competition: metrics.competition as 'HIGH' | 'MEDIUM' | 'LOW',
+            competitionIndex: metrics.competitionIndex,
+          }
+        );
       } else {
-        metricsEntity = this.metricsRepository.create({
+        this.memoryStorage.save<KeywordMetricsEntity>(COLLECTIONS.KEYWORD_METRICS, {
           keyword,
           yearMonth: currentMonth,
           searchVolume: metrics.searchVolume,
           competition: metrics.competition as 'HIGH' | 'MEDIUM' | 'LOW',
           competitionIndex: metrics.competitionIndex,
+          source: 'naver-ads-api',
         });
       }
-
-      await this.metricsRepository.save(metricsEntity);
       
       this.logger.log(`키워드 검색량 수집 완료: ${keyword}`);
       return metrics;
