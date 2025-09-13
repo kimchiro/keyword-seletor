@@ -17,7 +17,7 @@ import { CrawlerModule } from './modules/crawler/crawler.module';
     // 환경 설정
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['../../.env.local', '../../.env'],
     }),
 
     // 데이터베이스 설정

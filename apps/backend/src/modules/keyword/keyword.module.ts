@@ -10,6 +10,12 @@ import { KeywordTrendsEntity } from './entities/keyword-trends.entity';
 import { RelatedTermsEntity } from './entities/related-terms.entity';
 import { TagSuggestionsEntity } from './entities/tag-suggestions.entity';
 
+// 큐 프로세서들
+import { KeywordMetricsProcessor } from '../../queue/processors/keyword-metrics.processor';
+import { KeywordTrendsProcessor } from '../../queue/processors/keyword-trends.processor';
+import { RelatedTermsProcessor } from '../../queue/processors/related-terms.processor';
+import { TagSuggestionsProcessor } from '../../queue/processors/tag-suggestions.processor';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -27,7 +33,13 @@ import { TagSuggestionsEntity } from './entities/tag-suggestions.entity';
     ),
   ],
   controllers: [KeywordController],
-  providers: [KeywordService],
+  providers: [
+    KeywordService,
+    KeywordMetricsProcessor,
+    KeywordTrendsProcessor,
+    RelatedTermsProcessor,
+    TagSuggestionsProcessor,
+  ],
   exports: [KeywordService],
 })
 export class KeywordModule {}
