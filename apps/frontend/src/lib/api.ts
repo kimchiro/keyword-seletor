@@ -32,6 +32,29 @@ apiClient.interceptors.response.use(
   }
 );
 
+// 설정 관련 API
+export const settingsApi = {
+  getApiKeysStatus: async () => {
+    const response = await apiClient.get('/settings/api-keys');
+    return response.data;
+  },
+
+  updateApiKeys: async (data: { clientId?: string; clientSecret?: string; customerId?: string }) => {
+    const response = await apiClient.post('/settings/api-keys', data);
+    return response.data;
+  },
+
+  testApiKeys: async () => {
+    const response = await apiClient.post('/settings/api-keys/test');
+    return response.data;
+  },
+
+  disconnectApiKeys: async () => {
+    const response = await apiClient.post('/settings/api-keys/disconnect');
+    return response.data;
+  },
+};
+
 // 키워드 관련 API
 export const keywordApi = {
   researchKeyword: async (data: { keyword: string }) => {

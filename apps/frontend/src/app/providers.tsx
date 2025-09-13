@@ -13,7 +13,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
             gcTime: 10 * 60 * 1000, // 10분 (이전 cacheTime)
             retry: (failureCount, error: unknown) => {
               // 4xx 에러는 재시도하지 않음
-              if ((error as any)?.response?.status >= 400 && (error as any)?.response?.status < 500) {
+              const errorWithResponse = error as { response?: { status?: number } };
+              if (errorWithResponse?.response?.status && 
+                  errorWithResponse.response.status >= 400 && 
+                  errorWithResponse.response.status < 500) {
                 return false;
               }
               return failureCount < 3;

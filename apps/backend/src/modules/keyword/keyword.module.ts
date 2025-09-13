@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bull';
 
 import { KeywordController } from './keyword.controller';
 import { KeywordService } from './keyword.service';
+import { SettingsModule } from '../settings/settings.module';
 import { KeywordEntity } from './entities/keyword.entity';
 import { KeywordMetricsEntity } from './entities/keyword-metrics.entity';
 import { KeywordTrendsEntity } from './entities/keyword-trends.entity';
@@ -18,6 +19,7 @@ import { TagSuggestionsProcessor } from '../../queue/processors/tag-suggestions.
 
 @Module({
   imports: [
+    SettingsModule,
     TypeOrmModule.forFeature([
       KeywordEntity,
       KeywordMetricsEntity,

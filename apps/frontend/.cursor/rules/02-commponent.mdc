@@ -1,0 +1,40 @@
+---
+description: 키워드셀렉터 네비게이션 및 환경설정 컴포넌트 구현 완료
+globs:
+alwaysApply: false
+---
+
+## 구현 완료 상태 ✅
+
+### 파일 구조
+- @src/components/Navigation.tsx - 네비게이션 컴포넌트
+- @src/components/Settings.tsx - 환경설정 컴포넌트  
+- @src/components/KeywordSelector.tsx - 키워드셀렉터 컴포넌트
+- @src/components/MainLayout.tsx - 메인 레이아웃 컴포넌트
+
+### 구현된 기능 ✅
+1. **네비게이션 시스템**
+   - 키워드셀렉터/환경설정 버튼 그룹 구현
+   - URL 라우팅 없이 컴포넌트 스왑으로 구현
+   - 활성 탭 시각적 피드백
+
+2. **환경설정 컴포넌트**
+   - 네이버 API 키 입력 필드 (CLIENT_ID, CLIENT_SECRET, CUSTOMER_ID)
+   - 로컬 스토리지 기반 설정 저장/불러오기
+   - 네이버 개발자 센터 가이드 링크 및 상세 설명
+   - 저장/초기화 기능
+
+3. **기존 코드 보존**
+   - 키워드셀렉터 관련 기능 수정 없이 유지
+   - 기존 KeywordResearchForm, KeywordResults 컴포넌트 재사용
+
+### 추가 구현 사항
+- 반응형 디자인 적용
+- 사용자 친화적 UI/UX
+- 토스트 알림 시스템
+- 컴포넌트 재사용성 고려한 구조
+
+### 참고사항
+- API 키는 현재 로컬 스토리지에 저장
+- .env 파일 연동은 보안상 클라이언트 사이드에서 직접 수정 불가
+- 서버 사이드에서 환경변수 관리 권장

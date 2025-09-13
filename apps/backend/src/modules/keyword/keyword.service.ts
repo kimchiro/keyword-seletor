@@ -6,6 +6,7 @@ import type { Cache } from 'cache-manager';
 import { InjectQueue } from '@nestjs/bull';
 import type { Queue } from 'bull';
 import { ConfigService } from '@nestjs/config';
+import { SettingsService } from '../settings/settings.service';
 
 import { KeywordEntity } from './entities/keyword.entity';
 import { KeywordMetricsEntity } from './entities/keyword-metrics.entity';
@@ -41,6 +42,7 @@ export class KeywordService {
     @InjectQueue('tag-suggestions')
     private tagsQueue: Queue,
     private configService: ConfigService,
+    private settingsService: SettingsService,
   ) {}
 
   async researchKeyword(
@@ -142,7 +144,7 @@ export class KeywordService {
           searchVolume: existingRelated.searchVolume 
         }],
         freshness: this.getFreshness(existingRelated.createdAt),
-        source: existingRelated.source as any,
+        source: existingRelated.source as 'naver-autocomplete' | 'blog-crawling',
       } : {
         terms: [],
         freshness: 'stale',
@@ -155,7 +157,7 @@ export class KeywordService {
           category: existingTags.category 
         }],
         freshness: this.getFreshness(existingTags.createdAt),
-        source: existingTags.source as any,
+        source: existingTags.source as 'blog-crawling' | 'naver-autocomplete',
       } : {
         tags: [],
         freshness: 'stale',
@@ -226,7 +228,7 @@ export class KeywordService {
         searchVolume: r.searchVolume
       })),
       freshness: this.getFreshness(latestRelated.createdAt),
-      source: latestRelated.source as any,
+      source: latestRelated.source as 'naver-autocomplete' | 'blog-crawling',
     };
   }
 
@@ -247,7 +249,7 @@ export class KeywordService {
         category: t.category
       })),
       freshness: this.getFreshness(latestTag.createdAt),
-      source: latestTag.source as any,
+      source: latestTag.source as 'blog-crawling' | 'naver-autocomplete',
     };
   }
 
@@ -270,8 +272,6 @@ export class KeywordService {
   }
 
   private async collectRealTimeData(keyword: string) {
-    const axios = require('axios');
-    
     try {
       // 병렬로 모든 데이터 수집
       const [metricsData, trendsData, relatedData, tagsData] = await Promise.all([
@@ -298,10 +298,12 @@ export class KeywordService {
     try {
       const axios = require('axios');
       
-      const naverClientId = this.configService.get<string>('NAVER_CLIENT_ID');
-      const naverClientSecret = this.configService.get<string>('NAVER_CLIENT_SECRET');
+      // SettingsService에서 API 키 가져오기
+      const apiKeys = this.settingsService.getApiKeys();
+      const naverClientId = apiKeys.clientId || this.configService.get<string>('NAVER_CLIENT_ID');
+      const naverClientSecret = apiKeys.clientSecret || this.configService.get<string>('NAVER_CLIENT_SECRET');
       
-      this.logger.debug(`환경변수 확인 - CLIENT_ID: ${naverClientId ? '설정됨' : '없음'}, CLIENT_SECRET: ${naverClientSecret ? '설정됨' : '없음'}`);
+      this.logger.debug(`API 키 확인 - CLIENT_ID: ${naverClientId ? '설정됨' : '없음'}, CLIENT_SECRET: ${naverClientSecret ? '설정됨' : '없음'}`);
       
       if (!naverClientId || !naverClientSecret) {
         this.logger.warn('네이버 API 키가 설정되지 않음 - 대체 검색량 데이터 생성');
@@ -384,8 +386,10 @@ export class KeywordService {
     try {
       const axios = require('axios');
       
-      const naverClientId = this.configService.get<string>('NAVER_CLIENT_ID');
-      const naverClientSecret = this.configService.get<string>('NAVER_CLIENT_SECRET');
+      // SettingsService에서 API 키 가져오기
+      const apiKeys = this.settingsService.getApiKeys();
+      const naverClientId = apiKeys.clientId || this.configService.get<string>('NAVER_CLIENT_ID');
+      const naverClientSecret = apiKeys.clientSecret || this.configService.get<string>('NAVER_CLIENT_SECRET');
       
       if (!naverClientId || !naverClientSecret) {
         this.logger.warn('네이버 API 키가 설정되지 않음 - 대체 트렌드 데이터 생성');
@@ -419,7 +423,7 @@ export class KeywordService {
       if (response.data && response.data.results && response.data.results.length > 0) {
         const result = response.data.results[0];
         return {
-          data: result.data.map((item: any) => ({
+          data: result.data.map((item: { period: string; ratio: number }) => ({
             date: item.period,
             value: item.ratio,
           })),
@@ -467,7 +471,7 @@ export class KeywordService {
         
         if (Array.isArray(itemsArray)) {
           const terms = itemsArray
-            .map((item: any) => Array.isArray(item) ? item[0] : item) // 각 항목이 배열인 경우 첫 번째 요소 추출
+            .map((item: string | string[]) => Array.isArray(item) ? item[0] : item) // 각 항목이 배열인 경우 첫 번째 요소 추출
             .filter((term: string) => term && typeof term === 'string' && term !== keyword)
             .slice(0, 10)
             .map((term: string, index: number) => ({
@@ -670,7 +674,7 @@ export class KeywordService {
     };
   }
 
-  private generateFallbackTrends(keyword: string) {
+  private generateFallbackTrends(_keyword: string) {
     // 최근 12개월간의 가상 트렌드 데이터 생성
     const trends = [];
     const baseValue = 50 + Math.random() * 30;

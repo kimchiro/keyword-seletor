@@ -1,0 +1,25 @@
+---
+description: 프론트엔드(Next.js) 요구지침 및 역할
+globs: ["apps/frontend/**"]
+alwaysApply: false
+---
+# 03. 프론트엔드 요구지침
+
+## 역할
+- 키워드 입력/검색 요청
+- 표/그래프 시각화
+- 태그 복사 버튼,
+- API 상태(로딩, 에러) 처리
+
+## 기술
+- Next.js(App Router) + TypeScript
+- 스타일: Emotion / Styled-Components
+- 데이터 패칭: TanStack Query
+- 테이블: TanStack Table
+- 차트: Recharts or Chart.js
+
+## 지침
+- 모든 UI에 **신선도/출처 배지** 노출
+- 로딩/에러 상태를 명확히 표시
+- 사용자 액션(복사, Export) 시 Toast/Alert 제공
+- SEO 고려한 `<title>`, `<meta>` 세팅

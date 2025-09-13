@@ -11,6 +11,7 @@ import { RedisConfig } from './config/redis.config';
 import { KeywordModule } from './modules/keyword/keyword.module';
 import { ReportModule } from './modules/report/report.module';
 import { CrawlerModule } from './modules/crawler/crawler.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { CrawlerModule } from './modules/crawler/crawler.module';
     }),
 
     // 비즈니스 모듈들
+    SettingsModule,
     KeywordModule,
     ReportModule,
     CrawlerModule,
