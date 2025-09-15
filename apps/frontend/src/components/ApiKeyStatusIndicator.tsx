@@ -18,41 +18,45 @@ const StatusContainer = styled.div`
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height: 40px;
+  min-width: 200px;
 `;
 
 const StatusIndicator = styled.div<{ isConnected: boolean }>`
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 13px;
   font-weight: 500;
   color: ${props => props.isConnected ? '#10b981' : '#ef4444'};
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
 `;
 
 const StatusDot = styled.div<{ isConnected: boolean }>`
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background-color: ${props => props.isConnected ? '#10b981' : '#ef4444'};
-  box-shadow: 0 0 8px ${props => props.isConnected ? '#10b98140' : '#ef444440'};
+  box-shadow: 0 0 6px ${props => props.isConnected ? '#10b98140' : '#ef444440'};
   animation: ${props => props.isConnected ? 'pulse-green' : 'pulse-red'} 2s infinite;
+  flex-shrink: 0;
 
   @keyframes pulse-green {
     0%, 100% {
-      box-shadow: 0 0 8px #10b98140;
+      box-shadow: 0 0 6px #10b98140;
     }
     50% {
-      box-shadow: 0 0 16px #10b98160;
+      box-shadow: 0 0 12px #10b98160;
     }
   }
 
   @keyframes pulse-red {
     0%, 100% {
-      box-shadow: 0 0 8px #ef444440;
+      box-shadow: 0 0 6px #ef444440;
     }
     50% {
-      box-shadow: 0 0 16px #ef444460;
+      box-shadow: 0 0 12px #ef444460;
     }
   }
 `;
@@ -61,30 +65,33 @@ const TimerContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 `;
 
 const TimerLabel = styled.div`
-  font-size: 12px;
+  font-size: 10px;
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
 `;
 
 const TimerDisplay = styled.div<{ isExpiring: boolean }>`
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   font-family: 'Monaco', 'Menlo', monospace;
   color: ${props => props.isExpiring ? '#ef4444' : 'rgba(255, 255, 255, 0.9)'};
-  min-width: 80px;
+  min-width: 60px;
   text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
 `;
 
 const Divider = styled.div`
   width: 1px;
-  height: 24px;
+  height: 20px;
   background: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
 `;
 
 export function ApiKeyStatusIndicator({ className }: ApiKeyStatusIndicatorProps) {

@@ -13,28 +13,32 @@ const NavigationContainer = styled.nav`
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
-  justify-content: space-between;
+  justify-content: flex-start;
 `;
 
 const TabButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
-  flex: 1;
-  justify-content: center;
+  align-items: center;
 `;
 
 const StatusIndicatorWrapper = styled.div`
-  flex-shrink: 0;
+  margin-left: auto;
 `;
 
 const TabButton = styled.button<{ active: boolean }>`
-  padding: 0.75rem 1.5rem;
+  padding: 8px 16px;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
   
   ${({ active }) =>
     active
