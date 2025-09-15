@@ -1,23 +1,17 @@
 {
   "version": 2,
-  "name": "catch-keyword-backend",
   "builds": [
     {
-      "src": "dist/main.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/main.js"
+      "dest": "/api/index.js"
     }
   ],
-  "functions": {
-    "dist/main.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   }
