@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { KeywordAnalysisResponseDto as IKeywordAnalysisResponseDto } from '@keyword-selector/shared';
 
 export class KeywordMetricsDto {
   @ApiProperty({ description: '월 검색량', nullable: true })
@@ -81,7 +80,7 @@ export class TagSuggestionsDto {
   source!: 'blog-crawling' | 'cache' | 'fallback';
 }
 
-export class KeywordAnalysisResponseDto implements IKeywordAnalysisResponseDto {
+export class KeywordAnalysisResponseDto {
   @ApiProperty({ description: '분석 키워드' })
   keyword!: string;
 
