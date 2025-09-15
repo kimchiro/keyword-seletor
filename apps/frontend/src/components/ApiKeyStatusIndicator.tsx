@@ -97,9 +97,24 @@ const Divider = styled.div`
 export function ApiKeyStatusIndicator({ className }: ApiKeyStatusIndicatorProps) {
   const { isConnected, isLoading } = useApiKeyStatus();
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [sessionStartTime] = useState<number>(Date.now());
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
 
   useEffect(() => {
+    // API가 연결된 경우에만 세션 타이머 시작
+    if (isConnected && !sessionStartTime) {
+      setSessionStartTime(Date.now());
+    } else if (!isConnected) {
+      setSessionStartTime(null);
+      setTimeRemaining(0);
+    }
+  }, [isConnected, sessionStartTime]);
+
+  useEffect(() => {
+    // API가 연결되고 세션이 시작된 경우에만 타이머 실행
+    if (!isConnected || !sessionStartTime) {
+      return;
+    }
+
     // API 키 세션 만료 시간 (30분 = 1800초)
     const SESSION_DURATION = 30 * 60; // 30분
     
@@ -116,7 +131,7 @@ export function ApiKeyStatusIndicator({ className }: ApiKeyStatusIndicatorProps)
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [sessionStartTime]);
+  }, [isConnected, sessionStartTime]);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -144,14 +159,17 @@ export function ApiKeyStatusIndicator({ className }: ApiKeyStatusIndicatorProps)
         {isConnected ? 'API 연결됨' : 'API 미연결'}
       </StatusIndicator>
       
-      <Divider />
-      
-      <TimerContainer>
-        <TimerLabel>세션 만료</TimerLabel>
-        <TimerDisplay isExpiring={isExpiring}>
-          {timeRemaining > 0 ? formatTime(timeRemaining) : '만료됨'}
-        </TimerDisplay>
-      </TimerContainer>
+      {isConnected && (
+        <>
+          <Divider />
+          <TimerContainer>
+            <TimerLabel>세션 만료</TimerLabel>
+            <TimerDisplay isExpiring={isExpiring}>
+              {timeRemaining > 0 ? formatTime(timeRemaining) : '만료됨'}
+            </TimerDisplay>
+          </TimerContainer>
+        </>
+      )}
     </StatusContainer>
   );
 }
