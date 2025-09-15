@@ -3,6 +3,6 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://backend-1kijpveqq-kimchiros-projects.vercel.app/api/v1"
+    "NEXT_PUBLIC_API_URL": "https://backend-i0z4fntfg-kimchiros-projects.vercel.app/api/v1"
   }
 }

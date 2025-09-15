@@ -11,7 +11,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL:
       process.env.NEXT_PUBLIC_API_URL ||
-      'https://backend-1kijpveqq-kimchiros-projects.vercel.app/api/v1',
+      'https://backend-i0z4fntfg-kimchiros-projects.vercel.app/api/v1',
   },
   async rewrites() {
     // 개발 환경에서만 API 프록시 사용
