@@ -277,6 +277,9 @@ const ToastMessage = styled.div<{ show: boolean }>`
   z-index: 1000;
   transform: translateX(${({ show }) => (show ? '0' : '100%')});
   transition: transform 0.3s ease;
+  pointer-events: ${({ show }) => (show ? 'auto' : 'none')};
+  opacity: ${({ show }) => (show ? '1' : '0')};
+  visibility: ${({ show }) => (show ? 'visible' : 'hidden')};
 `;
 
 export function SearchHistory() {
@@ -337,9 +340,9 @@ export function SearchHistory() {
     }
   };
 
-  const handleCardClick = (item: SearchHistoryItem) => {
+  const handleCardClick = (_item: SearchHistoryItem) => {
     // 상세 보기 또는 재분석 기능을 추가할 수 있습니다
-    console.log('검색 기록 상세 보기:', item);
+    // TODO: 상세 보기 기능 구현
   };
 
   const showToastMessage = (message: string) => {

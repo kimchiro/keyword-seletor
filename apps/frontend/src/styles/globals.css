@@ -66,3 +66,27 @@ img {
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* 개발 도구 및 접근성 도구 요소 숨김 */
+div[class*="ToastMessage"],
+div[style*="background: #48BB78"],
+div[style*="background:#48BB78"],
+div[style*="background: rgb(72, 187, 120)"],
+div[style*="background:rgb(72, 187, 120)"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* 개발 도구 오버레이 숨김 */
+div[data-testid],
+div[class*="accessibility"],
+div[class*="debug"],
+div[class*="overlay"] {
+  pointer-events: none !important;
+}
+
+/* 특정 녹색 배경 요소 숨김 */
+div[style*="#48BB78"]:not([role]):not([aria-label]) {
+  display: none !important;
+}
