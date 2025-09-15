@@ -26,8 +26,6 @@ export function useApiKeyStatus() {
       
       const response = await settingsApi.getApiKeysStatus();
       
-      console.log('🔍 API 키 상태 응답:', response);
-      
       setStatus({
         isConnected: response.isConfigured || false, // 백엔드에서는 isConfigured 필드를 사용
         hasClientId: response.hasClientId || false,

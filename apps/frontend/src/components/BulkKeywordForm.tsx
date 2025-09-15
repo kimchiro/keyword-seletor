@@ -177,15 +177,10 @@ export function BulkKeywordForm({ onSubmit, isLoading, onNavigateToSettings, ref
   // refreshTrigger가 변경될 때마다 API 키 상태 새로고침 (초기값 0은 제외)
   React.useEffect(() => {
     if (refreshTrigger !== undefined && refreshTrigger > 0) {
-      console.log('🔄 API 키 상태 새로고침 트리거:', refreshTrigger);
       refetch();
     }
   }, [refreshTrigger, refetch]);
 
-  // API 키 상태 변경 시 로그 출력
-  React.useEffect(() => {
-    console.log('🔑 현재 API 키 상태:', { isConnected, apiKeyLoading });
-  }, [isConnected, apiKeyLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

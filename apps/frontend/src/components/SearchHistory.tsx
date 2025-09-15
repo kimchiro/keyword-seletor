@@ -336,7 +336,7 @@ export function SearchHistory() {
 
   const handleCardClick = (item: SearchHistoryItem) => {
     // 상세 보기 또는 재분석 기능을 추가할 수 있습니다
-    console.log('검색 기록 상세 보기:', item);
+    // TODO: 상세 보기 기능 구현
   };
 
   const showToastMessage = (message: string) => {

@@ -45,8 +45,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3001;
   await app.listen(port);
   
-  console.log(`🚀 백엔드 서버가 포트 ${port}에서 실행 중입니다.`);
-  console.log(`📚 API 문서: http://localhost:${port}/api/docs`);
+  // 서버 시작 완료
 }
 
 bootstrap();

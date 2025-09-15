@@ -153,7 +153,6 @@ export function BulkKeywordResearch({ onNavigateToSettings, refreshTrigger }: Bu
           searchCount: data.searchCount,
           results: response,
         });
-        console.log('검색 기록이 저장되었습니다:', data.initialKeyword);
       } catch (saveError) {
         console.error('검색 기록 저장 실패:', saveError);
         // 저장 실패해도 메인 기능에는 영향 없도록 에러를 던지지 않음

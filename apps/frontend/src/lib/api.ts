@@ -24,7 +24,6 @@ const apiClient = axios.create({
 // 요청 인터셉터
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`API 요청: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
