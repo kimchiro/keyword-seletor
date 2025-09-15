@@ -33,7 +33,7 @@ export class SettingsService {
     const hasClientSecret = !!this.apiKeys.clientSecret;
     const hasCustomerId = !!this.apiKeys.customerId;
 
-    return {
+    const status = {
       isConfigured: hasClientId && hasClientSecret && hasCustomerId,
       hasClientId,
       hasClientSecret,
@@ -42,6 +42,10 @@ export class SettingsService {
       clientSecretMasked: this.maskApiKey(this.apiKeys.clientSecret),
       customerIdMasked: this.maskApiKey(this.apiKeys.customerId),
     };
+
+    this.logger.debug(`API 키 상태 조회: isConfigured=${status.isConfigured}, hasClientId=${hasClientId}, hasClientSecret=${hasClientSecret}, hasCustomerId=${hasCustomerId}`);
+
+    return status;
   }
 
   async updateApiKeys(updateApiKeysDto: UpdateApiKeysDto): Promise<ApiKeysResponseDto> {

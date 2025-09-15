@@ -1,5 +1,16 @@
 import axios from 'axios';
 
+// API 응답 타입 정의
+interface ApiKeysStatusResponse {
+  isConfigured: boolean;
+  hasClientId: boolean;
+  hasClientSecret: boolean;
+  hasCustomerId: boolean;
+  clientIdMasked: string;
+  clientSecretMasked: string;
+  customerIdMasked: string;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 const apiClient = axios.create({
@@ -34,7 +45,7 @@ apiClient.interceptors.response.use(
 
 // 설정 관련 API
 export const settingsApi = {
-  getApiKeysStatus: async () => {
+  getApiKeysStatus: async (): Promise<ApiKeysStatusResponse> => {
     const response = await apiClient.get('/settings/api-keys');
     return response.data;
   },
@@ -79,6 +90,11 @@ export const keywordApi = {
 
   getTagSuggestions: async (keyword: string) => {
     const response = await apiClient.get(`/keywords/tags?keyword=${encodeURIComponent(keyword)}`);
+    return response.data;
+  },
+
+  bulkResearchKeywords: async (data: { initialKeyword: string; searchCount: number }) => {
+    const response = await apiClient.post('/keywords/bulk-research', data);
     return response.data;
   },
 };

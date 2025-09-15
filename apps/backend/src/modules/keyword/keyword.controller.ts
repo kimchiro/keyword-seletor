@@ -14,6 +14,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { KeywordService } from './keyword.service';
 import { KeywordResearchDto } from './dto/keyword-research.dto';
 import { KeywordAnalysisResponseDto } from './dto/keyword-analysis-response.dto';
+import { BulkKeywordResearchDto, BulkKeywordResearchResponseDto } from './dto/bulk-keyword-research.dto';
 
 @ApiTags('keywords')
 @Controller('keywords')
@@ -72,5 +73,22 @@ export class KeywordController {
   })
   async getTagSuggestions(@Query('keyword') keyword: string) {
     return this.keywordService.getTagSuggestions(keyword);
+  }
+
+  @Post('bulk-research')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '키워드 무한반복 조회',
+    description: '초기 키워드로부터 연관 키워드를 찾아 지정된 개수만큼 반복 조회합니다. 중복 키워드는 자동으로 건너뜁니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '키워드 대량 분석 결과',
+    type: BulkKeywordResearchResponseDto,
+  })
+  async bulkResearchKeywords(
+    @Body() bulkKeywordResearchDto: BulkKeywordResearchDto,
+  ): Promise<BulkKeywordResearchResponseDto> {
+    return this.keywordService.bulkResearchKeywords(bulkKeywordResearchDto);
   }
 }

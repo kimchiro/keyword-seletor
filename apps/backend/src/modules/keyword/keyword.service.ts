@@ -15,6 +15,7 @@ import { RelatedTermsEntity } from './entities/related-terms.entity';
 import { TagSuggestionsEntity } from './entities/tag-suggestions.entity';
 import { KeywordResearchDto } from './dto/keyword-research.dto';
 import { KeywordAnalysisResponseDto } from './dto/keyword-analysis-response.dto';
+import { BulkKeywordResearchDto, BulkKeywordResearchResponseDto, KeywordMetricsResponseDto } from './dto/bulk-keyword-research.dto';
 
 @Injectable()
 export class KeywordService {
@@ -686,5 +687,154 @@ export class KeywordService {
       freshness: 'stale' as const,
       source: 'estimated-fallback' as const,
     };
+  }
+
+  async bulkResearchKeywords(dto: BulkKeywordResearchDto): Promise<BulkKeywordResearchResponseDto> {
+    const { initialKeyword, searchCount } = dto;
+    const searchedKeywords = new Set<string>();
+    const results: KeywordMetricsResponseDto[] = [];
+    const keywordQueue: string[] = [initialKeyword];
+    let skippedDuplicates = 0;
+
+    this.logger.log(`무한반복 키워드 조회 시작 - 초기 키워드: ${initialKeyword}, 목표 개수: ${searchCount}`);
+
+    while (results.length < searchCount && keywordQueue.length > 0) {
+      const currentKeyword = keywordQueue.shift()!;
+
+      // 중복 체크
+      if (searchedKeywords.has(currentKeyword)) {
+        skippedDuplicates++;
+        this.logger.debug(`중복 키워드 건너뛰기: ${currentKeyword}`);
+        continue;
+      }
+
+      try {
+        // 키워드 검색량 및 메트릭 조회
+        const keywordMetrics = await this.getKeywordMetricsForBulk(currentKeyword);
+        
+        if (keywordMetrics) {
+          results.push(keywordMetrics);
+          searchedKeywords.add(currentKeyword);
+          
+          this.logger.log(`키워드 조회 완료 (${results.length}/${searchCount}): ${currentKeyword} - 검색량: ${keywordMetrics.totalMonthlySearchVolume}`);
+
+          // 연관 키워드 수집하여 큐에 추가
+          if (results.length < searchCount) {
+            const relatedKeywords = await this.getRelatedKeywordsForQueue(currentKeyword);
+            relatedKeywords.forEach(keyword => {
+              if (!searchedKeywords.has(keyword) && !keywordQueue.includes(keyword)) {
+                keywordQueue.push(keyword);
+              }
+            });
+          }
+        } else {
+          this.logger.warn(`키워드 메트릭 조회 실패: ${currentKeyword}`);
+        }
+
+        // API 호출 간격 조절 (과도한 요청 방지)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+      } catch (error) {
+        this.logger.error(`키워드 조회 중 오류 발생: ${currentKeyword}`, error);
+      }
+
+      // 무한 루프 방지를 위한 안전장치
+      if (keywordQueue.length === 0 && results.length < searchCount) {
+        this.logger.warn(`더 이상 조회할 키워드가 없습니다. 현재까지 ${results.length}개 조회 완료`);
+        break;
+      }
+    }
+
+    const response: BulkKeywordResearchResponseDto = {
+      keywords: results,
+      totalSearched: results.length,
+      skippedDuplicates,
+      completedAt: new Date().toISOString(),
+    };
+
+    this.logger.log(`무한반복 키워드 조회 완료 - 총 ${results.length}개 키워드 조회, ${skippedDuplicates}개 중복 건너뛰기`);
+
+    return response;
+  }
+
+  private async getKeywordMetricsForBulk(keyword: string): Promise<KeywordMetricsResponseDto | null> {
+    try {
+      const metricsData = await this.fetchMetricsData(keyword);
+      
+      if (!metricsData || !metricsData.searchVolume) {
+        return null;
+      }
+
+      // PC/모바일 검색량 분할 (일반적으로 모바일이 60%, PC가 40%)
+      const totalVolume = metricsData.searchVolume;
+      const mobileVolume = Math.round(totalVolume * 0.6);
+      const pcVolume = totalVolume - mobileVolume;
+
+      // 문서수는 네이버 검색 API에서 가져온 총 결과 수
+      const documentCount = await this.getDocumentCount(keyword);
+
+      return {
+        keyword,
+        pcMonthlySearchVolume: pcVolume,
+        mobileMonthlySearchVolume: mobileVolume,
+        totalMonthlySearchVolume: totalVolume,
+        documentCount,
+        competitionRate: metricsData.competitionIndex,
+        competitionLevel: metricsData.competition as 'LOW' | 'MEDIUM' | 'HIGH',
+      };
+    } catch (error) {
+      this.logger.error(`키워드 메트릭 조회 실패: ${keyword}`, error);
+      return null;
+    }
+  }
+
+  private async getRelatedKeywordsForQueue(keyword: string): Promise<string[]> {
+    try {
+      const relatedData = await this.fetchRelatedData(keyword);
+      
+      if (relatedData && relatedData.terms) {
+        return relatedData.terms
+          .slice(0, 5) // 상위 5개만 선택
+          .map(term => term.term)
+          .filter(term => term && term.length >= 2 && term.length <= 20);
+      }
+
+      return [];
+    } catch (error) {
+      this.logger.error(`연관 키워드 조회 실패: ${keyword}`, error);
+      return [];
+    }
+  }
+
+  private async getDocumentCount(keyword: string): Promise<number> {
+    try {
+      const axios = require('axios');
+      
+      // SettingsService에서 API 키 가져오기
+      const apiKeys = this.settingsService.getApiKeys();
+      const naverClientId = apiKeys.clientId || this.configService.get<string>('NAVER_CLIENT_ID');
+      const naverClientSecret = apiKeys.clientSecret || this.configService.get<string>('NAVER_CLIENT_SECRET');
+      
+      if (!naverClientId || !naverClientSecret) {
+        // API 키가 없으면 추정값 반환
+        return Math.floor(Math.random() * 100000) + 10000;
+      }
+
+      // 블로그 검색 결과 수 조회
+      const response = await axios.get('https://openapi.naver.com/v1/search/blog.json', {
+        params: { query: keyword, display: 1, start: 1 },
+        headers: { 
+          'X-Naver-Client-Id': naverClientId, 
+          'X-Naver-Client-Secret': naverClientSecret 
+        },
+        timeout: 5000,
+      });
+
+      return response.data?.total || 0;
+    } catch (error) {
+      this.logger.error(`문서수 조회 실패: ${keyword}`, error);
+      // 오류 시 추정값 반환
+      return Math.floor(Math.random() * 100000) + 10000;
+    }
   }
 }

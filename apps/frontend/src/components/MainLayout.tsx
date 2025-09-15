@@ -4,6 +4,7 @@ import styled from '@emotion/styled';
 import { useState } from 'react';
 import { Navigation } from './Navigation';
 import { KeywordSelector } from './KeywordSelector';
+import { BulkKeywordResearch } from './BulkKeywordResearch';
 import { Settings } from './Settings';
 
 const Container = styled.div`
@@ -44,15 +45,29 @@ const Card = styled.div`
   overflow: hidden;
 `;
 
-type ActiveTab = 'keyword-selector' | 'settings';
+type ActiveTab = 'keyword-selector' | 'bulk-research' | 'settings';
 
 export function MainLayout() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('keyword-selector');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    // bulk-research 탭으로 전환할 때 API 키 상태 새로고침
+    if (tab === 'bulk-research') {
+      setRefreshTrigger(prev => prev + 1);
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'keyword-selector':
         return <KeywordSelector />;
+      case 'bulk-research':
+        return <BulkKeywordResearch 
+          onNavigateToSettings={() => setActiveTab('settings')} 
+          refreshTrigger={refreshTrigger}
+        />;
       case 'settings':
         return <Settings />;
       default:
@@ -70,10 +85,14 @@ export function MainLayout() {
       </Header>
 
       <MainContent>
-        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-        <Card>
-          {renderContent()}
-        </Card>
+        <Navigation activeTab={activeTab} onTabChange={handleTabChange} />
+        {activeTab === 'bulk-research' ? (
+          renderContent()
+        ) : (
+          <Card>
+            {renderContent()}
+          </Card>
+        )}
       </MainContent>
     </Container>
   );
