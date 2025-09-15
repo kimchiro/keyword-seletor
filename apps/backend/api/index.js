@@ -4,7 +4,7 @@ const { SwaggerModule, DocumentBuilder } = require('@nestjs/swagger');
 const compression = require('compression');
 const helmet = require('helmet');
 
-let app;
+let cachedApp;
 
 async function createApp() {
   const { AppModule } = await import('../dist/app.module.js');
@@ -52,10 +52,18 @@ async function createApp() {
 }
 
 module.exports = async (req, res) => {
-  if (!app) {
-    app = await createApp();
-  }
+  try {
+    if (!cachedApp) {
+      const app = await createApp();
+      cachedApp = app.getHttpAdapter().getInstance();
+    }
 
-  const expressApp = app.getHttpAdapter().getInstance();
-  return expressApp(req, res);
+    return cachedApp(req, res);
+  } catch (error) {
+    console.error('Serverless function error:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: error.message,
+    });
+  }
 };
