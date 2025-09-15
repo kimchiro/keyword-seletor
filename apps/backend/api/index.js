@@ -1,15 +1,29 @@
 const { NestFactory } = require('@nestjs/core');
-const { AppModule } = require('../dist/app.module');
+const { AppModule } = require('../dist/apps/backend/src/app.module');
 
-let app;
+let cachedApp;
 
 module.exports = async (req, res) => {
-  if (!app) {
-    app = await NestFactory.create(AppModule);
-    app.enableCors();
-    await app.init();
-  }
+  try {
+    if (!cachedApp) {
+      const app = await NestFactory.create(AppModule, {
+        cors: true,
+        logger: ['error', 'warn'],
+      });
 
-  const expressApp = app.getHttpAdapter().getInstance();
-  return expressApp(req, res);
+      // API prefix 설정
+      app.setGlobalPrefix('api/v1');
+
+      await app.init();
+      cachedApp = app.getHttpAdapter().getInstance();
+    }
+
+    return cachedApp(req, res);
+  } catch (error) {
+    console.error('Serverless function error:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: error.message,
+    });
+  }
 };
