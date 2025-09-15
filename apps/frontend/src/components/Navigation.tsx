@@ -1,6 +1,7 @@
 'use client';
 
 import styled from '@emotion/styled';
+import { ApiKeyStatusIndicator } from './ApiKeyStatusIndicator';
 
 interface NavigationProps {
   activeTab: 'search-history' | 'bulk-research' | 'settings';
@@ -9,9 +10,21 @@ interface NavigationProps {
 
 const NavigationContainer = styled.nav`
   display: flex;
+  align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
+  justify-content: space-between;
+`;
+
+const TabButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  flex: 1;
   justify-content: center;
+`;
+
+const StatusIndicatorWrapper = styled.div`
+  flex-shrink: 0;
 `;
 
 const TabButton = styled.button<{ active: boolean }>`
@@ -44,24 +57,30 @@ const TabButton = styled.button<{ active: boolean }>`
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   return (
     <NavigationContainer>
-      <TabButton
-        active={activeTab === 'search-history'}
-        onClick={() => onTabChange('search-history')}
-      >
-        📋 조회 기록
-      </TabButton>
-      <TabButton
-        active={activeTab === 'bulk-research'}
-        onClick={() => onTabChange('bulk-research')}
-      >
-        🔄 무한반복 조회
-      </TabButton>
-      <TabButton
-        active={activeTab === 'settings'}
-        onClick={() => onTabChange('settings')}
-      >
-        환경설정
-      </TabButton>
+      <TabButtonGroup>
+        <TabButton
+          active={activeTab === 'search-history'}
+          onClick={() => onTabChange('search-history')}
+        >
+          📋 조회 기록
+        </TabButton>
+        <TabButton
+          active={activeTab === 'bulk-research'}
+          onClick={() => onTabChange('bulk-research')}
+        >
+          🔄 무한반복 조회
+        </TabButton>
+        <TabButton
+          active={activeTab === 'settings'}
+          onClick={() => onTabChange('settings')}
+        >
+          환경설정
+        </TabButton>
+      </TabButtonGroup>
+      
+      <StatusIndicatorWrapper>
+        <ApiKeyStatusIndicator />
+      </StatusIndicatorWrapper>
     </NavigationContainer>
   );
 }

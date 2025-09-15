@@ -13,10 +13,11 @@ const StatusContainer = styled.div`
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 `;
 
 const StatusIndicator = styled.div<{ isConnected: boolean }>`
@@ -26,6 +27,7 @@ const StatusIndicator = styled.div<{ isConnected: boolean }>`
   font-size: 14px;
   font-weight: 500;
   color: ${props => props.isConnected ? '#10b981' : '#ef4444'};
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `;
 
 const StatusDot = styled.div<{ isConnected: boolean }>`
@@ -64,23 +66,25 @@ const TimerContainer = styled.div`
 
 const TimerLabel = styled.div`
   font-size: 12px;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `;
 
 const TimerDisplay = styled.div<{ isExpiring: boolean }>`
   font-size: 14px;
   font-weight: 600;
   font-family: 'Monaco', 'Menlo', monospace;
-  color: ${props => props.isExpiring ? '#ef4444' : '#374151'};
+  color: ${props => props.isExpiring ? '#ef4444' : 'rgba(255, 255, 255, 0.9)'};
   min-width: 80px;
   text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `;
 
 const Divider = styled.div`
   width: 1px;
   height: 24px;
-  background: rgba(107, 114, 128, 0.3);
+  background: rgba(255, 255, 255, 0.3);
 `;
 
 export function ApiKeyStatusIndicator({ className }: ApiKeyStatusIndicatorProps) {
