@@ -115,7 +115,7 @@ const Table = styled.table`
 const Th = styled.th`
   background: #f8fafc;
   padding: 1rem;
-  text-align: left;
+  text-align: center;
   font-weight: 600;
   color: #2d3748;
   border-bottom: 2px solid #e2e8f0;
@@ -129,6 +129,7 @@ const Td = styled.td`
   padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
   vertical-align: middle;
+  text-align: center;
 `;
 
 const KeywordCell = styled(Td)`
@@ -139,7 +140,6 @@ const KeywordCell = styled(Td)`
 `;
 
 const NumberCell = styled(Td)`
-  text-align: right;
   font-family: 'Monaco', 'Menlo', monospace;
   font-size: 0.9rem;
 `;
