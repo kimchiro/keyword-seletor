@@ -5,8 +5,8 @@ import styled from '@emotion/styled';
 import { ApiKeyStatusIndicator } from './ApiKeyStatusIndicator';
 
 interface NavigationProps {
-  activeTab: 'search-history' | 'bulk-research' | 'settings';
-  onTabChange: (tab: 'search-history' | 'bulk-research' | 'settings') => void;
+  activeTab: 'search-history' | 'bulk-research' | 'settings' | 'faq';
+  onTabChange: (tab: 'search-history' | 'bulk-research' | 'settings' | 'faq') => void;
 }
 
 const NavigationContainer = styled.nav`
@@ -86,6 +86,12 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
           onClick={() => onTabChange('settings')}
         >
           환경설정
+        </TabButton>
+        <TabButton
+          active={activeTab === 'faq'}
+          onClick={() => onTabChange('faq')}
+        >
+          ❓ 자주묻는질문
         </TabButton>
       </TabButtonGroup>
       

@@ -6,6 +6,7 @@ import { Navigation } from './Navigation';
 import { SearchHistory } from './SearchHistory';
 import { BulkKeywordResearch } from './BulkKeywordResearch';
 import { Settings } from './Settings';
+import { FAQ } from './FAQ';
 import { ApiKeyStatusIndicator } from './ApiKeyStatusIndicator';
 
 
@@ -173,7 +174,7 @@ const Card = styled.div`
   overflow: hidden;
 `;
 
-type ActiveTab = 'search-history' | 'bulk-research' | 'settings';
+type ActiveTab = 'search-history' | 'bulk-research' | 'settings' | 'faq';
 
 export function MainLayout() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('search-history');
@@ -200,6 +201,8 @@ export function MainLayout() {
         />;
       case 'settings':
         return <Settings />;
+      case 'faq':
+        return <FAQ />;
       default:
         return <SearchHistory />;
     }
@@ -245,6 +248,12 @@ export function MainLayout() {
               onClick={() => handleTabChange('settings')}
             >
               환경설정
+            </MobileTabButton>
+            <MobileTabButton
+              active={activeTab === 'faq'}
+              onClick={() => handleTabChange('faq')}
+            >
+              ❓ 자주묻는질문
             </MobileTabButton>
           </MobileTabButtonGroup>
 
