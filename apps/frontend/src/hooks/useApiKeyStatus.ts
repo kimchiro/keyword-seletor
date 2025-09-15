@@ -47,7 +47,13 @@ export function useApiKeyStatus() {
   }, []); // 빈 의존성 배열로 함수가 안정적으로 유지됨
 
   useEffect(() => {
+    // 초기 상태 확인
     checkApiKeyStatus();
+
+    // 30초마다 상태 확인 (실시간 업데이트)
+    const interval = setInterval(checkApiKeyStatus, 30000);
+
+    return () => clearInterval(interval);
   }, [checkApiKeyStatus]);
 
   return {

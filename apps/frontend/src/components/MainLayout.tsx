@@ -6,6 +6,8 @@ import { Navigation } from './Navigation';
 import { SearchHistory } from './SearchHistory';
 import { BulkKeywordResearch } from './BulkKeywordResearch';
 import { Settings } from './Settings';
+import { ApiKeyStatusIndicator } from './ApiKeyStatusIndicator';
+
 
 const Container = styled.div`
   min-height: 100vh;
@@ -17,6 +19,14 @@ const Header = styled.header`
   text-align: center;
   margin-bottom: 3rem;
   color: white;
+  position: relative;
+`;
+
+const StatusIndicatorWrapper = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
 `;
 
 const Title = styled.h1`
@@ -78,7 +88,10 @@ export function MainLayout() {
   return (
     <Container>
       <Header>
-        <Title>키워드 셀렉터</Title>
+        <StatusIndicatorWrapper>
+          <ApiKeyStatusIndicator />
+        </StatusIndicatorWrapper>
+        <Title>캐치 키워드</Title>
         <Subtitle>
           D.I.A 관점의 검색 의도 충족 글쓰기를 위한 네이버 블로그 키워드 리서치 도구
         </Subtitle>
