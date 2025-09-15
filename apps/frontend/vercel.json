@@ -1,24 +1,8 @@
 {
-  "version": 2,
-  "name": "catch-keyword-frontend",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://catch-keyword-backend.vercel.app"
-  },
-  "functions": {
-    "app/api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
+    "NEXT_PUBLIC_API_URL": "http://localhost:3001/api/v1"
   }
 }
