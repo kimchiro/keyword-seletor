@@ -1,7 +1,7 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
-import { useState, useEffect } from 'react';
 import { searchHistoryStorage, SearchHistoryItem } from '@/utils/localStorage';
 
 const Container = styled.div`
@@ -182,9 +182,106 @@ const KeywordTag = styled.span`
   font-weight: 500;
 `;
 
+const ExpandButton = styled.button`
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 1rem;
+
+  &:hover {
+    background: #5a67d8;
+  }
+`;
+
+const FullKeywordList = styled.div`
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+`;
+
+const KeywordGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+`;
+
+const KeywordItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+`;
+
+const KeywordText = styled.span`
+  flex: 1;
+  margin-right: 0.5rem;
+  word-break: break-word;
+`;
+
+const CopyButton = styled.button`
+  padding: 0.25rem 0.5rem;
+  background: #48bb78;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #38a169;
+  }
+`;
+
+const CopyAllButton = styled.button`
+  padding: 0.5rem 1rem;
+  background: #38a169;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 1rem;
+
+  &:hover {
+    background: #2f855a;
+  }
+`;
+
+const ToastMessage = styled.div<{ show: boolean }>`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #48bb78;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  z-index: 1000;
+  transform: translateX(${({ show }) => (show ? '0' : '100%')});
+  transition: transform 0.3s ease;
+`;
+
 export function SearchHistory() {
   const [history, setHistory] = useState<SearchHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     loadHistory();
@@ -242,6 +339,68 @@ export function SearchHistory() {
     console.log('검색 기록 상세 보기:', item);
   };
 
+  const showToastMessage = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 2000);
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        return true;
+      } catch (fallbackErr) {
+        document.body.removeChild(textArea);
+        return false;
+      }
+    }
+  };
+
+  const handleCopyKeyword = async (keyword: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const success = await copyToClipboard(keyword);
+    if (success) {
+      showToastMessage(`"${keyword}" 복사됨`);
+    } else {
+      showToastMessage('복사 실패');
+    }
+  };
+
+  const handleCopyAllKeywords = async (keywords: string[], event: React.MouseEvent) => {
+    event.stopPropagation();
+    const keywordText = keywords.join('\n');
+    const success = await copyToClipboard(keywordText);
+    if (success) {
+      showToastMessage(`${keywords.length}개 키워드 복사됨`);
+    } else {
+      showToastMessage('복사 실패');
+    }
+  };
+
+  const toggleExpanded = (itemId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedItems(newExpanded);
+  };
+
   if (isLoading) {
     return (
       <Container>
@@ -278,7 +437,7 @@ export function SearchHistory() {
             <HistoryCard key={item.id} onClick={() => handleCardClick(item)}>
               <HistoryHeader>
                 <KeywordInfo>
-                  <InitialKeyword>"{item.initialKeyword}"</InitialKeyword>
+                  <InitialKeyword>&quot;{item.initialKeyword}&quot;</InitialKeyword>
                   <SearchDate>{formatDate(item.createdAt)}</SearchDate>
                 </KeywordInfo>
                 <DeleteButton onClick={(e) => handleDeleteItem(item.id, e)}>
@@ -319,11 +478,45 @@ export function SearchHistory() {
                     <KeywordTag>+{item.results.keywords.length - 5}개 더</KeywordTag>
                   )}
                 </KeywordPreview>
+                
+                <ExpandButton onClick={(e) => toggleExpanded(item.id, e)}>
+                  {expandedItems.has(item.id) ? '접기' : `전체 ${item.results.keywords.length}개 키워드 보기`}
+                </ExpandButton>
+
+                {expandedItems.has(item.id) && (
+                  <FullKeywordList>
+                    <CopyAllButton 
+                      onClick={(e) => handleCopyAllKeywords(
+                        item.results.keywords.map(k => k.keyword), 
+                        e
+                      )}
+                    >
+                      📋 모든 키워드 복사
+                    </CopyAllButton>
+                    
+                    <KeywordGrid>
+                      {item.results.keywords.map((keyword, index) => (
+                        <KeywordItem key={index}>
+                          <KeywordText>{keyword.keyword}</KeywordText>
+                          <CopyButton 
+                            onClick={(e) => handleCopyKeyword(keyword.keyword, e)}
+                          >
+                            복사
+                          </CopyButton>
+                        </KeywordItem>
+                      ))}
+                    </KeywordGrid>
+                  </FullKeywordList>
+                )}
               </PreviewContainer>
             </HistoryCard>
           ))}
         </HistoryList>
       )}
+      
+      <ToastMessage show={showToast}>
+        {toastMessage}
+      </ToastMessage>
     </Container>
   );
 }
