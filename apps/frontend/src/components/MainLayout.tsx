@@ -174,6 +174,87 @@ const Card = styled.div`
   overflow: hidden;
 `;
 
+const Footer = styled.footer`
+  margin-top: 3rem;
+  padding: 2rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+const FooterContent = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+`;
+
+const DeveloperInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    gap: 2rem;
+    align-items: center;
+  }
+`;
+
+const InfoItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  
+  @media (min-width: 768px) {
+    justify-content: flex-start;
+  }
+`;
+
+const GitHubLink = styled.a`
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    color: white;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  }
+`;
+
+const EmailLink = styled.a`
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    color: white;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  }
+`;
+
+const Copyright = styled.div`
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 1rem;
+  
+  @media (min-width: 768px) {
+    margin-top: 0;
+  }
+`;
+
 type ActiveTab = 'search-history' | 'bulk-research' | 'settings' | 'faq';
 
 export function MainLayout() {
@@ -269,6 +350,35 @@ export function MainLayout() {
           {renderContent()}
         </Card>
       </MainContent>
+
+      <Footer>
+        <FooterContent>
+          <DeveloperInfo>
+            <InfoItem>
+              <span>👨‍💻</span>
+              <span>개발자:</span>
+              <GitHubLink 
+                href="https://github.com/kimchiro" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <span>🐙</span>
+                @kimchiro
+              </GitHubLink>
+            </InfoItem>
+            <InfoItem>
+              <span>📧</span>
+              <span>연락처:</span>
+              <EmailLink href="mailto:rlaehddhs12@gmail.com">
+                rlaehddhs12@gmail.com
+              </EmailLink>
+            </InfoItem>
+          </DeveloperInfo>
+          <Copyright>
+            © 2025 캐치 키워드. All rights reserved.
+          </Copyright>
+        </FooterContent>
+      </Footer>
     </Container>
   );
 }
