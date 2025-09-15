@@ -13,11 +13,6 @@
       "dest": "dist/main.js"
     }
   ],
-  "functions": {
-    "dist/main.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   }
