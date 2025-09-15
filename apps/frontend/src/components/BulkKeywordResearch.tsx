@@ -7,6 +7,7 @@ import { BulkKeywordResults } from './BulkKeywordResults';
 import { ErrorMessage } from './ErrorMessage';
 import { keywordApi } from '@/lib/api';
 import { BulkKeywordResearchResponse } from '@/types/keyword';
+import { searchHistoryStorage } from '@/utils/localStorage';
 
 const Container = styled.div`
   padding: 2rem;
@@ -144,6 +145,19 @@ export function BulkKeywordResearch({ onNavigateToSettings, refreshTrigger }: Bu
       setProgress(100);
       setResults(response);
       setSearchedCount(response.totalSearched);
+      
+      // 조회 완료 시 로컬스토리지에 저장
+      try {
+        searchHistoryStorage.saveSearchHistory({
+          initialKeyword: data.initialKeyword,
+          searchCount: data.searchCount,
+          results: response,
+        });
+        console.log('검색 기록이 저장되었습니다:', data.initialKeyword);
+      } catch (saveError) {
+        console.error('검색 기록 저장 실패:', saveError);
+        // 저장 실패해도 메인 기능에는 영향 없도록 에러를 던지지 않음
+      }
       
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };

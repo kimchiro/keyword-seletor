@@ -3,7 +3,7 @@
 import styled from '@emotion/styled';
 import { useState } from 'react';
 import { Navigation } from './Navigation';
-import { KeywordSelector } from './KeywordSelector';
+import { SearchHistory } from './SearchHistory';
 import { BulkKeywordResearch } from './BulkKeywordResearch';
 import { Settings } from './Settings';
 
@@ -45,10 +45,10 @@ const Card = styled.div`
   overflow: hidden;
 `;
 
-type ActiveTab = 'keyword-selector' | 'bulk-research' | 'settings';
+type ActiveTab = 'search-history' | 'bulk-research' | 'settings';
 
 export function MainLayout() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('keyword-selector');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('search-history');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleTabChange = (tab: ActiveTab) => {
@@ -61,8 +61,8 @@ export function MainLayout() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'keyword-selector':
-        return <KeywordSelector />;
+      case 'search-history':
+        return <SearchHistory />;
       case 'bulk-research':
         return <BulkKeywordResearch 
           onNavigateToSettings={() => setActiveTab('settings')} 
@@ -71,7 +71,7 @@ export function MainLayout() {
       case 'settings':
         return <Settings />;
       default:
-        return <KeywordSelector />;
+        return <SearchHistory />;
     }
   };
 

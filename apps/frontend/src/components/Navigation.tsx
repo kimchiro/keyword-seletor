@@ -3,8 +3,8 @@
 import styled from '@emotion/styled';
 
 interface NavigationProps {
-  activeTab: 'keyword-selector' | 'bulk-research' | 'settings';
-  onTabChange: (tab: 'keyword-selector' | 'bulk-research' | 'settings') => void;
+  activeTab: 'search-history' | 'bulk-research' | 'settings';
+  onTabChange: (tab: 'search-history' | 'bulk-research' | 'settings') => void;
 }
 
 const NavigationContainer = styled.nav`
@@ -45,10 +45,10 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   return (
     <NavigationContainer>
       <TabButton
-        active={activeTab === 'keyword-selector'}
-        onClick={() => onTabChange('keyword-selector')}
+        active={activeTab === 'search-history'}
+        onClick={() => onTabChange('search-history')}
       >
-        키워드셀렉터
+        📋 조회 기록
       </TabButton>
       <TabButton
         active={activeTab === 'bulk-research'}
