@@ -87,13 +87,9 @@ export function MainLayout() {
 
       <MainContent>
         <Navigation activeTab={activeTab} onTabChange={handleTabChange} />
-        {activeTab === 'bulk-research' ? (
-          renderContent()
-        ) : (
-          <Card>
-            {renderContent()}
-          </Card>
-        )}
+        <Card>
+          {renderContent()}
+        </Card>
       </MainContent>
     </Container>
   );

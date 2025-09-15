@@ -7,6 +7,9 @@ import { settingsApi } from '../lib/api';
 
 const SettingsContainer = styled.div`
   padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 `;
 
 const Title = styled.h2`

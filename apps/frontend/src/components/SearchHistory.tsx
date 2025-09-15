@@ -6,6 +6,9 @@ import { searchHistoryStorage, SearchHistoryItem } from '@/utils/localStorage';
 
 const Container = styled.div`
   padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 `;
 
 const Header = styled.div`
@@ -336,7 +339,7 @@ export function SearchHistory() {
 
   const handleCardClick = (item: SearchHistoryItem) => {
     // 상세 보기 또는 재분석 기능을 추가할 수 있습니다
-    // TODO: 상세 보기 기능 구현
+    console.log('검색 기록 상세 보기:', item);
   };
 
   const showToastMessage = (message: string) => {
